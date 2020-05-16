@@ -31,6 +31,35 @@ namespace Autoruns
 
         private ImageList IconList;
         private const int pad = 5;
+
+        private string[] RegEntry = 
+        {
+            "HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Run",
+            "HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Run",
+            "HKCU\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Run",
+            "HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\Run",
+            "HKCU\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\Run",
+            "HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\RunOnce",
+            "HKCU\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\RunOnce",
+            "HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\RunOnceEx",
+            "HKCU\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\RunOnceEx",
+
+            "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+            "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+            "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\Run",
+            "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\Run",
+            "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce",
+            "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce",
+            "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnceEx",
+            "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnceEx",
+
+        };
+
+        private string[] Startup =
+        {
+
+        };
+
         private void InitListView()
         {
             listView1.View = View.Details;
@@ -69,7 +98,12 @@ namespace Autoruns
         {
             string USERPROFILE = Environment.GetEnvironmentVariable("USERPROFILE");
             LoadStartupDir(new DirectoryInfo(USERPROFILE + "\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup"));
-            LoadRegEntry("HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Run");
+            string ProgramData = Environment.GetEnvironmentVariable("ProgramData");
+            LoadStartupDir(new DirectoryInfo(ProgramData + "\\Microsoft\\Windows\\Start Menu\\Programs\\Startup"));
+            foreach (string entry in RegEntry)
+            {
+                LoadRegEntry(entry);
+            }
         }
         private void LoadRegEntry(string keyPath)
         {
@@ -93,6 +127,11 @@ namespace Autoruns
             
             listView1.BeginUpdate();
             AddContainerItem(keyPath, DateTime.Now);
+            if (subkey == null)
+            {
+                listView1.EndUpdate();
+                return;
+            }
             string [] valuenames = subkey.GetValueNames();
             foreach(string valuename in valuenames)
             {
@@ -183,7 +222,11 @@ namespace Autoruns
             if (!IconList.Images.ContainsKey(file.FullName))
             {
                 // If not, add the image to the image list.
-                Icon iconForFile = System.Drawing.Icon.ExtractAssociatedIcon(file.FullName);
+                Icon iconForFile = SystemIcons.WinLogo;
+                if (System.IO.File.Exists(file.FullName))
+                {
+                    iconForFile = System.Drawing.Icon.ExtractAssociatedIcon(file.FullName);
+                }
                 IconList.Images.Add(path, iconForFile);
             }
         }
@@ -272,8 +315,7 @@ namespace Autoruns
                 IWshShortcut IWshShortcut = (IWshShortcut)shell.CreateShortcut(shortcutFilename);
                 return IWshShortcut.TargetPath;
             }
-            else
-                return string.Empty;
+            return string.Empty;
         }
 
         private string GetFileDescription(string file)
@@ -298,15 +340,23 @@ namespace Autoruns
 
         private string GetFilePublisher(string targetFile)
         {
-            X509Certificate xcert = X509Certificate.CreateFromSignedFile(targetFile);
-            string subject = xcert.Subject;
-            
-            int start = subject.IndexOf("CN=") + 3;
-            int end = subject.IndexOf("=", start);
-            while (subject[end--] != ',') ;
-            
-            string CN = "(Verified) " + subject.Substring(start, end - start + 1).Trim('\"');
-            return CN;
+            try
+            {
+                X509Certificate xcert = X509Certificate.CreateFromSignedFile(targetFile);
+                string subject = xcert.Subject;
+
+                int start = subject.IndexOf("CN=") + 3;
+                int end = subject.IndexOf("=", start);
+                while (subject[end--] != ',') ;
+
+                string CN = "(Verified) " + subject.Substring(start, end - start + 1).Trim('\"');
+                return CN;
+            }
+            catch
+            {
+
+            }
+            return "(Not Verified)";
         }
 
         private DateTime GetFileTime(string path)
