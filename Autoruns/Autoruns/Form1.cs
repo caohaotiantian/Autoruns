@@ -63,6 +63,7 @@ namespace Autoruns
         }
         private void LoadRegEntry(string keyPath)
         {
+            // Figure out root key & subkey
             int firstSlash = keyPath.IndexOf('\\');
             string rootKey = keyPath.Substring(0, firstSlash);
             string regEntryName = keyPath.Substring(firstSlash + 1);
@@ -81,17 +82,22 @@ namespace Autoruns
             RegistryKey subkey = key.OpenSubKey(regEntryName, true);
             
             listView1.BeginUpdate();
-            // add reg entry
             AddContainerItem(keyPath, DateTime.Now);
-            
             string [] valuenames = subkey.GetValueNames();
             foreach(string valuename in valuenames)
             {
                 string value = subkey.GetValue(valuename).ToString();
-                AddAutorunItem(value, "", "", "", DateTime.Now);
+                string target = value;
+                if(value[0] == '\"')
+                {
+                    target = value.Substring(1, value.LastIndexOf('\"') - 1);
+                }
+                AddAutorunItem(valuename,
+                    GetFileDescription(target),
+                    GetFilePublisher(target),
+                    target,
+                    GetFileTime(target));
             }
-            
-
             listView1.EndUpdate();
         }
 
@@ -188,17 +194,20 @@ namespace Autoruns
         {
             if (e.Item.IndentCount != 0)
                 e.DrawDefault = true;
+            else
+            {
+                e.Item.BackColor = Color.FromArgb(208, 208, 255);
+                e.DrawBackground();
+            }
         }
 
         // Draws subitem text and applies content-based formatting.
         private void listView1_DrawSubItem(object sender, DrawListViewSubItemEventArgs e)
-        {
+        {   
             if (e.Item.IndentCount == 0)
             {
                 ListView listView = (ListView)sender;
 
-                // Unless the item is selected, draw the standard background 
-               
                 if (e.ColumnIndex == 0)
                 {
                     Rectangle rowBoundsL = e.Item.SubItems[0].Bounds;
@@ -265,6 +274,26 @@ namespace Autoruns
                 return "GetFileDescription() ERROR.";
             }
             
+        }
+
+        private string GetFilePublisher(string targetFile)
+        {
+            X509Certificate xcert = X509Certificate.CreateFromSignedFile(targetFile);
+            string subject = xcert.Subject;
+            string x = xcert.ToString(true);
+            string y = xcert.ToString(false);
+            
+            int start = subject.IndexOf("CN=") + 3;
+            int end = subject.IndexOf("=", start);
+            while (subject[end--] != ',') ;
+            string CN = "(Verified) " + subject.Substring(start, end - start + 1).Trim('\"');
+            return CN;
+        }
+
+        private DateTime GetFileTime(string path)
+        {
+            FileInfo f = new FileInfo(path);
+            return f.LastWriteTime;
         }
 
     }
