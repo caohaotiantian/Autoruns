@@ -36,40 +36,53 @@ namespace Autoruns
             listView1.FullRowSelect = true;
             listView1.HeaderStyle = ColumnHeaderStyle.Nonclickable;
             
-            // draw raw
+            // In order to make the Reg Keys and Startup Folders stand out across 
+            // multipule columns, we need to draw it by ourselves instead of using
+            // the default draw funcions.
             listView1.OwnerDraw = true;
-            listView1.DrawItem += new DrawListViewItemEventHandler(listView1_DrawItem);
-            listView1.DrawSubItem += new DrawListViewSubItemEventHandler(listView1_DrawSubItem);
-            listView1.DrawColumnHeader += new DrawListViewColumnHeaderEventHandler(listView1_DrawColumnHeader);
+            listView1.DrawItem += 
+                new DrawListViewItemEventHandler(listView1_DrawItem);
+            listView1.DrawSubItem += 
+                new DrawListViewSubItemEventHandler(listView1_DrawSubItem);
+            listView1.DrawColumnHeader += 
+                new DrawListViewColumnHeaderEventHandler(listView1_DrawColumnHeader);
 
-            // add five columns
+            // Add five header columns
             listView1.Columns.Add("Autorun Entry", 320, HorizontalAlignment.Left);
             listView1.Columns.Add("Description", 160, HorizontalAlignment.Left);
             listView1.Columns.Add("Publisher", 240, HorizontalAlignment.Left);
             listView1.Columns.Add("Image Path", 480, HorizontalAlignment.Left);
             listView1.Columns.Add("Timestamp", 140, HorizontalAlignment.Left);
-
-            
         }
 
         private void FillInListView()
         {
             string USERPROFILE = Environment.GetEnvironmentVariable("USERPROFILE");
             LoadStartupDir(new DirectoryInfo(USERPROFILE + "\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup"));
-            LoadRegEntry();
+            LoadRegEntry("HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Run");
         }
-        private void LoadRegEntry()
+        private void LoadRegEntry(string keyPath)
         {
+            int firstSlash = keyPath.IndexOf('\\');
+            string rootKey = keyPath.Substring(0, firstSlash);
+            string regEntryName = keyPath.Substring(firstSlash + 1);
+            RegistryKey key;
+            switch (rootKey)
+            {
+                case "HKLM":
+                    key = Registry.LocalMachine;
+                    break;
+                case "HKCU":
+                    key = Registry.CurrentUser;
+                    break;
+                default:
+                    return;
+            }
+            RegistryKey subkey = key.OpenSubKey(regEntryName, true);
+            
             listView1.BeginUpdate();
-            RegistryKey key = Registry.LocalMachine;
-            RegistryKey subkey = key.OpenSubKey("SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Run", true);
             // add reg entry
-            ListViewItem item1 = new ListViewItem("SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Run", 0);
-            item1.SubItems.Add("");
-            item1.SubItems.Add("");
-            item1.SubItems.Add("");
-            item1.SubItems.Add("sdf");
-            listView1.Items.Add(item1);
+            AddContainerItem(keyPath, DateTime.Now);
             
             string [] valuenames = subkey.GetValueNames();
             foreach(string valuename in valuenames)
@@ -87,12 +100,7 @@ namespace Autoruns
             listView1.BeginUpdate();
 
             // add folder directory
-            ListViewItem item1 = new ListViewItem(dir.FullName, 0);
-            item1.SubItems.Add("");
-            item1.SubItems.Add("");
-            item1.SubItems.Add("");
-            item1.SubItems.Add(dir.LastWriteTime.ToString("G"));
-            listView1.Items.Add(item1);
+            AddContainerItem(dir.FullName, dir.LastWriteTime);
 
             // Create an image list and add an image.
             ImageList list = new ImageList();
@@ -135,16 +143,37 @@ namespace Autoruns
 
         }
 
+        private void AddContainerItem(string entry, DateTime time)
+        {
+            ListViewItem item = new ListViewItem(entry, 0);
+
+            // prepare 5 subitems to be appended to an item of listview
+            item.SubItems.Add(string.Empty);
+            item.SubItems.Add(string.Empty);
+            item.SubItems.Add(string.Empty);
+            item.SubItems.Add(time.ToString("G"));
+
+            // no indent to mark it as a ContainerItem, instead of an AutorunItem
+            item.IndentCount = 0;
+
+            // Do actual add
+            listView1.Items.Add(item);
+        }
+
         private void AddAutorunItem(string entry, string desc, string publisher, string path, DateTime time)
         {
-            // add 5 subitems to an item of listview
             ListViewItem item = new ListViewItem(entry, 0);
+            
+            // prepare 5 subitems to be appended to an item of listview
             item.SubItems.Add(desc);
             item.SubItems.Add(publisher);
             item.SubItems.Add(path);
             item.SubItems.Add(time.ToString("G"));
-            // indent
+            
+            // indent to mark it as a AutorunItem, instead of a ContainerItem
             item.IndentCount = 1;
+            
+            // Do actual add
             listView1.Items.Add(item);
         }
 
