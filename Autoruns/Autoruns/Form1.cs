@@ -1,11 +1,7 @@
-﻿using IWshRuntimeLibrary;
-using System;
-using System.Diagnostics;
+﻿using System;
 using System.Drawing;
 using System.IO;
-using System.Security.Cryptography.X509Certificates;
 using System.Windows.Forms;
-using Microsoft.Win32;
 
 namespace Autoruns
 {
@@ -20,35 +16,7 @@ namespace Autoruns
 
         private ImageList IconList;
         private const int pad = 5;
-
-        private string[] RegEntry = 
-        {
-            "HKLM\\System\\CurrentControlSet\\Control\\Terminal Server\\Wds\\rdpwd\\StartupPrograms",
-            "HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Run",
-            "HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Run",
-            "HKCU\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Run",
-            "HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\Run",
-            "HKCU\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\Run",
-            "HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\RunOnce",
-            "HKCU\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\RunOnce",
-            "HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\RunOnceEx",
-            "HKCU\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\RunOnceEx",
-
-            "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
-            "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
-            "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\Run",
-            "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\Run",
-            "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce",
-            "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce",
-            "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnceEx",
-            "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnceEx",
-
-        };
-
-        private string[] Startup =
-        {
-
-        };
+        private Startups autoruns = new Startups();
 
         private void InitListView()
         {
@@ -88,85 +56,23 @@ namespace Autoruns
 
         private void FillInListView()
         {
-            string USERPROFILE = Environment.GetEnvironmentVariable("USERPROFILE");
-            LoadStartupDir(new DirectoryInfo(USERPROFILE + "\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup"));
-            string ProgramData = Environment.GetEnvironmentVariable("ProgramData");
-            LoadStartupDir(new DirectoryInfo(ProgramData + "\\Microsoft\\Windows\\Start Menu\\Programs\\Startup"));
-            foreach (string entry in RegEntry)
-            {
-                LoadRegEntry(entry);
-            }
-        }
-
-        private void LoadRegEntry(string keyPath)
-        {
-            // Figure out root key & subkey
-            int firstSlash = keyPath.IndexOf('\\');
-            string rootKey = keyPath.Substring(0, firstSlash);
-            string regEntryName = keyPath.Substring(firstSlash + 1);
-            RegistryKey key;
-            switch (rootKey)
-            {
-                case "HKLM":
-                    key = Registry.LocalMachine;
-                    break;
-                case "HKCU":
-                    key = Registry.CurrentUser;
-                    break;
-                default:
-                    return;
-            }
-            RegistryKey subkey = key.OpenSubKey(regEntryName, true);
-            
             listView1.BeginUpdate();
-            AddContainerItem(keyPath, DateTime.Now);
-            if (subkey == null)
+            foreach(StartupEntry e in autoruns.starupEntrys)
             {
-                listView1.EndUpdate();
-                return;
-            }
-            string [] valuenames = subkey.GetValueNames();
-            foreach(string valuename in valuenames)
-            {
-                string value = subkey.GetValue(valuename).ToString();
-                string target = value;
-                if(value[0] == '\"')
+                if(e.IsMainEntry)
                 {
-                    target = value.Substring(1, value.LastIndexOf('\"') - 1);
+                    AddContainerItem(e.EntryName, e.Time);
                 }
-                AddAutorunItem(valuename,
-                    GetFileDescription(target),
-                    GetFilePublisher(target),
-                    target,
-                    GetFileTime(target));
+                else
+                {
+                    AddAutorunItem(e.EntryName,
+                        e.Desctiption,
+                        e.Publisher,
+                        e.ImagePath,
+                        e.Time);
+                }
             }
             listView1.EndUpdate();
-        }
-
-        private void LoadStartupDir(DirectoryInfo dir)
-        {
-            listView1.BeginUpdate();
-
-            // add folder directory
-            AddContainerItem(dir.FullName, dir.LastWriteTime);
-
-            FileInfo[] subFiles = dir.GetFiles();
-            foreach (FileInfo f in subFiles)
-            {
-                string targetFile = f.FullName;
-                if (Path.GetExtension(f.FullName).ToLower() == ".lnk")
-                {
-                    targetFile = GetShortcutTarget(f.FullName);
-                }
-                else if (Path.GetExtension(f.FullName).ToLower() == ".ini")
-                {
-                    continue;
-                }
-                
-                AddAutorunItem(f.Name, GetFileDescription(targetFile), GetFilePublisher(targetFile), targetFile, f.LastWriteTime);
-            }
-            listView1.EndUpdate();
-
         }
 
         private void AddContainerItem(string entry, DateTime time)
@@ -298,65 +204,5 @@ namespace Autoruns
         {
             e.DrawDefault = true;
         }
-
-
-        private string GetShortcutTarget(string shortcutFilename)
-        {
-            if (System.IO.File.Exists(shortcutFilename) && Path.GetExtension(shortcutFilename).ToLower() == ".lnk")
-            {
-                WshShell shell = new WshShell();
-                IWshShortcut IWshShortcut = (IWshShortcut)shell.CreateShortcut(shortcutFilename);
-                return IWshShortcut.TargetPath;
-            }
-            return string.Empty;
-        }
-
-        private string GetFileDescription(string file)
-        {
-            if (!System.IO.File.Exists(file)) return "File does not exists.";
-            
-            try
-            {
-                // Get the file version for the file.
-                FileVersionInfo myFileVersionInfo =
-                    FileVersionInfo.GetVersionInfo(file);
-
-                // Print the file description.
-                return myFileVersionInfo.FileDescription;
-            }
-            catch
-            {
-                return "GetFileDescription() ERROR.";
-            }
-            
-        }
-
-        private string GetFilePublisher(string targetFile)
-        {
-            try
-            {
-                X509Certificate xcert = X509Certificate.CreateFromSignedFile(targetFile);
-                string subject = xcert.Subject;
-
-                int start = subject.IndexOf("CN=") + 3;
-                int end = subject.IndexOf("=", start);
-                while (subject[end--] != ',') ;
-
-                string CN = subject.Substring(start, end - start + 1).Trim('\"');
-                return CN;
-            }
-            catch
-            {
-
-            }
-            return string.Empty;
-        }
-
-        private DateTime GetFileTime(string path)
-        {
-            FileInfo f = new FileInfo(path);
-            return f.LastWriteTime;
-        }
-
     }
 }
