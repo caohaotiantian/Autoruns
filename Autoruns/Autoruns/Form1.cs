@@ -92,6 +92,8 @@ namespace Autoruns
 
             // SmallImageList must be set when using IndentCount.
             listView1.SmallImageList = IconList;
+
+            toolStripStatusLabel1.Text = "Finished";
         }
 
         private void FillInListView()
@@ -105,6 +107,7 @@ namespace Autoruns
                 LoadRegEntry(entry);
             }
         }
+
         private void LoadRegEntry(string keyPath)
         {
             // Figure out root key & subkey
@@ -349,14 +352,14 @@ namespace Autoruns
                 int end = subject.IndexOf("=", start);
                 while (subject[end--] != ',') ;
 
-                string CN = "(Verified) " + subject.Substring(start, end - start + 1).Trim('\"');
+                string CN = subject.Substring(start, end - start + 1).Trim('\"');
                 return CN;
             }
             catch
             {
 
             }
-            return "(Not Verified)";
+            return string.Empty;
         }
 
         private DateTime GetFileTime(string path)
