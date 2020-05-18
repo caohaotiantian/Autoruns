@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Security.Cryptography.X509Certificates;
 
 namespace Autoruns
@@ -15,7 +16,65 @@ namespace Autoruns
 
         private string[] RegEntry =
         {
+            "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\Userinit",
             "HKLM\\System\\CurrentControlSet\\Control\\Terminal Server\\Wds\\rdpwd\\StartupPrograms",
+            "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\AppSetup",
+            "HKLM\\Software\\Policies\\Microsoft\\Windows\\System\\Scripts\\Startup",
+            "HKCU\\Software\\Policies\\Microsoft\\Windows\\System\\Scripts\\Logon",
+            "HKLM\\Software\\Policies\\Microsoft\\Windows\\System\\Scripts\\Logon",
+            "HKCU\\Environment\\UserInitMprLogonScript",
+            "HKLM\\Environment\\UserInitMprLogonScript",
+            "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\Userinit",
+            "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\VmApplet",
+            "HKLM\\Software\\Policies\\Microsoft\\Windows\\System\\Scripts\\Shutdown",
+            "HKCU\\Software\\Policies\\Microsoft\\Windows\\System\\Scripts\\Logoff",
+            "HKLM\\Software\\Policies\\Microsoft\\Windows\\System\\Scripts\\Logoff",
+            "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Group Policy\\Scripts\\Startup",
+            "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Group Policy\\Scripts\\Startup",
+            "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Group Policy\\Scripts\\Logon",
+            "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Group Policy\\Scripts\\Logon",
+            "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Group Policy\\Scripts\\Logoff",
+            "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Group Policy\\Scripts\\Logoff",
+            "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Group Policy\\Scripts\\Shutdown",
+            "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Group Policy\\Scripts\\Shutdown",
+            "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\Shell",
+            "HKCU\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\Shell",
+            "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\Shell",
+            "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\Shell",
+            "HKLM\\SYSTEM\\CurrentControlSet\\Control\\SafeBoot\\AlternateShell",
+            "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\Taskman",
+            "HKLM\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\AlternateShells\\AvailableShells",
+            "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Terminal Server\\Install\\Software\\Microsoft\\Windows\\CurrentVersion\\Runonce",
+            "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Terminal Server\\Install\\Software\\Microsoft\\Windows\\CurrentVersion\\RunonceEx",
+            "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Terminal Server\\Install\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+            "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\WinStations\\RDP-Tcp\\InitialProgram",
+            "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+            "HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Run",
+            "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+            "HKCU\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Run",
+            "HKCU\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\RunOnceEx",
+            "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce",
+            "HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\RunOnce",
+            "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce",
+            "HKCU\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\RunOnce",
+            "HKCU\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows\\Load",
+            "HKCU\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows\\Run",
+            "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\Run",
+            "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\\Run",
+            "HKLM\\SOFTWARE\\Microsoft\\Active Setup\\Installed Components",
+            "HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Active Setup\\Installed Components",
+            "HKLM\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows\\IconServiceLib",
+            "HKCU\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Terminal Server\\Install\\Software\\Microsoft\\Windows\\CurrentVersion\\Runonce",
+            "HKCU\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Terminal Server\\Install\\Software\\Microsoft\\Windows\\CurrentVersion\\RunonceEx",
+            "HKCU\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Terminal Server\\Install\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+            "HKLM\\SOFTWARE\\Microsoft\\Windows CE Services\\AutoStartOnConnect",
+            "HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows CE Services\\AutoStartOnConnect",
+            "HKLM\\SOFTWARE\\Microsoft\\Windows CE Services\\AutoStartOnDisconnect",
+            "HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows CE Services\\AutoStartOnDisconnect",
+
+
+
+/*
             "HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Run",
             "HKLM\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Run",
             "HKCU\\SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Run",
@@ -34,7 +93,7 @@ namespace Autoruns
             "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce",
             "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnceEx",
             "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnceEx",
-
+*/
         };
 
         public Startups()
@@ -67,29 +126,54 @@ namespace Autoruns
                 default:
                     return;
             }
-            RegistryKey subkey = key.OpenSubKey(regEntryName, true);
-
-            starupEntrys.Add(new StartupEntry(true,
+            StartupEntry localStartupEntry = new StartupEntry(true,
                 keyPath,
                 string.Empty,
                 string.Empty,
                 string.Empty,
-                DateTime.Now));
-            if (subkey == null)
+                DateTime.Now);
+            starupEntrys.Add(localStartupEntry);
+
+            RegistryKey subkey = key.OpenSubKey(regEntryName, true);
+            
+            if (subkey == null) // try it as a Key-Value
+            {
+                int delimiter = regEntryName.LastIndexOf('\\');
+                string regEntryPath = regEntryName.Substring(0, delimiter);
+                string regEntryValue = regEntryName.Substring(delimiter + 1);
+                subkey = key.OpenSubKey(regEntryPath, true);
+                if (subkey == null) return;
+                if (subkey.GetValue(regEntryValue) == null) return;
+                string value = subkey.GetValue(regEntryValue).ToString();
+                if (value == string.Empty) return;
+                string valueContent = GetValueContentAsPath(value);
+                if (valueContent.IndexOf('.') == -1)
+                    valueContent += ".exe";
+                if(!System.IO.File.Exists(valueContent))
+                    valueContent = GetFilePathUnderSystemPath(valueContent);
+                if (valueContent == "") return;
+                AddStartupEntry(false,
+                    value,
+                    GetFileDescription(valueContent),
+                    GetFilePublisher(valueContent),
+                    valueContent,
+                    GetFileTime(valueContent));
+                localStartupEntry.IsEmpty = false;
                 return;
+            }
+
             string[] valuenames = subkey.GetValueNames();
             foreach (string valuename in valuenames)
             {
                 string value = subkey.GetValue(valuename).ToString();
-                string target = value;
-                if (value[0] == '\"')
-                    target = value.Substring(1, value.LastIndexOf('\"') - 1);
-                starupEntrys.Add(new StartupEntry(false, 
+                string target = GetValueContentAsPath(value);
+                AddStartupEntry(false, 
                     valuename,
                     GetFileDescription(target),
                     GetFilePublisher(target),
                     target,
-                    GetFileTime(target)));
+                    GetFileTime(target));
+                localStartupEntry.IsEmpty = false;
             }
         }
 
@@ -104,14 +188,13 @@ namespace Autoruns
 
         private void LoadStartupDirEntry(DirectoryInfo dir)
         {
-
-            // add folder directory
-            starupEntrys.Add(new StartupEntry(true,
+            StartupEntry localStartupEntry = new StartupEntry(true,
                 dir.FullName,
                 string.Empty,
                 string.Empty,
                 string.Empty,
-                dir.LastWriteTime));
+                dir.LastWriteTime);
+            starupEntrys.Add(localStartupEntry);
 
             FileInfo[] subFiles = dir.GetFiles();
             foreach (FileInfo f in subFiles)
@@ -121,12 +204,14 @@ namespace Autoruns
                     targetFile = GetShortcutTarget(f.FullName);
                 else if (Path.GetExtension(f.FullName).ToLower() == ".ini")
                     continue;
-                starupEntrys.Add(new StartupEntry(false,
+                AddStartupEntry(false,
                     f.Name,
                     GetFileDescription(targetFile),
                     GetFilePublisher(targetFile),
                     targetFile,
-                    f.LastWriteTime));
+                    f.LastWriteTime);
+                localStartupEntry.IsEmpty = false;
+
             }
         }
 
@@ -188,5 +273,45 @@ namespace Autoruns
             return f.LastWriteTime;
         }
 
+
+        private void AddStartupEntry(bool isMainEntry,
+            string entryName,
+            string desctiption,
+            string publisher,
+            string imagePath,
+            DateTime time)
+        {
+            starupEntrys.Add(new StartupEntry(isMainEntry,
+                entryName,
+                desctiption,
+                publisher,
+                imagePath,
+                time));
+        }
+
+        // Get the file path out of the outermost double quotation marks ""
+        private string GetValueContentAsPath(string value)
+        {
+            string res = value;
+            if (res[0] == '\"')
+                res = value.Substring(1, value.LastIndexOf('\"') - 1);
+            if (!res.EndsWith(".exe") && res.Contains(".exe"))
+                res = res.Substring(0, res.IndexOf(".exe") + 4);
+            return res;
+        }
+
+        // Get the file path under system path
+        private string GetFilePathUnderSystemPath(string value)
+        {
+            string path = Environment.GetEnvironmentVariable("PATH");
+            string[] systemPaths = path.Split(';');
+            foreach(string leadingFolder in systemPaths)
+            {
+                string maybePath = leadingFolder + '\\' + value;
+                if (System.IO.File.Exists(maybePath))
+                    return maybePath;
+            }
+            return "";
+        }
     }
 }

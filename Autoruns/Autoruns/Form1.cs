@@ -11,7 +11,7 @@ namespace Autoruns
         {
             InitializeComponent();
             InitListView();
-            FillInListView();
+            UpdateListView();
         }
 
         private ImageList IconList;
@@ -54,14 +54,16 @@ namespace Autoruns
             toolStripStatusLabel1.Text = "Finished";
         }
 
-        private void FillInListView()
+        private void UpdateListView(bool hideEmpty = false)
         {
             listView1.BeginUpdate();
+            listView1.Items.Clear();
             foreach(StartupEntry e in autoruns.starupEntrys)
             {
                 if(e.IsMainEntry)
                 {
-                    AddContainerItem(e.EntryName, e.Time);
+                    if (!hideEmpty || hideEmpty && !e.IsEmpty)
+                        AddContainerItem(e.EntryName, e.Time);
                 }
                 else
                 {
@@ -203,6 +205,20 @@ namespace Autoruns
         private void listView1_DrawColumnHeader(object sender, DrawListViewColumnHeaderEventArgs e)
         {
             e.DrawDefault = true;
+        }
+
+        private void hideEmptyLocationToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (hideEmptyLocationToolStripMenuItem.Checked == true)
+            {
+                hideEmptyLocationToolStripMenuItem.Checked = false;
+                UpdateListView(false);
+            }
+            else
+            {
+                hideEmptyLocationToolStripMenuItem.Checked = true;
+                UpdateListView(true);
+            }
         }
     }
 }

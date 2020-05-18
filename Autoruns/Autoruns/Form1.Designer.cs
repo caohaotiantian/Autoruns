@@ -34,11 +34,9 @@
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.entryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.hideEmptyLocationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.userToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.hideEmptyLocationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.hideMicrosoftEntrysToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.hideWindowsEntriesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.panel1 = new System.Windows.Forms.Panel();
@@ -92,12 +90,17 @@
             // optionsToolStripMenuItem
             // 
             this.optionsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.hideEmptyLocationToolStripMenuItem,
-            this.hideMicrosoftEntrysToolStripMenuItem,
-            this.hideWindowsEntriesToolStripMenuItem});
+            this.hideEmptyLocationToolStripMenuItem});
             this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
             this.optionsToolStripMenuItem.Size = new System.Drawing.Size(66, 21);
             this.optionsToolStripMenuItem.Text = "Options";
+            // 
+            // hideEmptyLocationToolStripMenuItem
+            // 
+            this.hideEmptyLocationToolStripMenuItem.Name = "hideEmptyLocationToolStripMenuItem";
+            this.hideEmptyLocationToolStripMenuItem.Size = new System.Drawing.Size(202, 22);
+            this.hideEmptyLocationToolStripMenuItem.Text = "Hide Empty Locations";
+            this.hideEmptyLocationToolStripMenuItem.Click += new System.EventHandler(this.hideEmptyLocationToolStripMenuItem_Click);
             // 
             // userToolStripMenuItem
             // 
@@ -114,35 +117,16 @@
             this.helpToolStripMenuItem.Size = new System.Drawing.Size(47, 21);
             this.helpToolStripMenuItem.Text = "Help";
             // 
-            // hideEmptyLocationToolStripMenuItem
-            // 
-            this.hideEmptyLocationToolStripMenuItem.Name = "hideEmptyLocationToolStripMenuItem";
-            this.hideEmptyLocationToolStripMenuItem.Size = new System.Drawing.Size(202, 22);
-            this.hideEmptyLocationToolStripMenuItem.Text = "Hide Empty Locations";
-            // 
-            // hideMicrosoftEntrysToolStripMenuItem
-            // 
-            this.hideMicrosoftEntrysToolStripMenuItem.Name = "hideMicrosoftEntrysToolStripMenuItem";
-            this.hideMicrosoftEntrysToolStripMenuItem.Size = new System.Drawing.Size(206, 22);
-            this.hideMicrosoftEntrysToolStripMenuItem.Text = "Hide Microsoft Entries";
-            this.hideMicrosoftEntrysToolStripMenuItem.Click += new System.EventHandler(this.hideMicrosoftEntrysToolStripMenuItem_Click);
-            // 
-            // hideWindowsEntriesToolStripMenuItem
-            // 
-            this.hideWindowsEntriesToolStripMenuItem.Name = "hideWindowsEntriesToolStripMenuItem";
-            this.hideWindowsEntriesToolStripMenuItem.Size = new System.Drawing.Size(206, 22);
-            this.hideWindowsEntriesToolStripMenuItem.Text = "Hide Windows Entries";
-            // 
             // helpToolStripMenuItem1
             // 
             this.helpToolStripMenuItem1.Name = "helpToolStripMenuItem1";
-            this.helpToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
+            this.helpToolStripMenuItem1.Size = new System.Drawing.Size(111, 22);
             this.helpToolStripMenuItem1.Text = "Help";
             // 
             // aboutToolStripMenuItem
             // 
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(111, 22);
             this.aboutToolStripMenuItem.Text = "About";
             // 
             // panel1
@@ -194,10 +178,8 @@
         private System.Windows.Forms.ToolStripMenuItem entryToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem optionsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem hideEmptyLocationToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem hideMicrosoftEntrysToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem userToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem hideWindowsEntriesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
         private System.Windows.Forms.Panel panel1;
