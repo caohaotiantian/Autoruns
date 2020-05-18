@@ -49,7 +49,25 @@ SysinternalsSuite中Autostart工具列出了较为详细的自启动目录和包含自启动的注册表。
 
 ![q2](../images/q2.png)
 
-在自启动键方面就有显示了很多PPT上没有提到的。我把Autoruns所有默认隐藏的选项显示出来后，在`Logon`这一栏内的所有的注册表的项罗列如下：
+在自启动键方面就有显示了很多PPT上没有提到的。我把Autoruns所有默认隐藏的选项显示出来后，在`Logon`这一栏内的所有的注册表的项罗列在附录中。
+
+在实现注册表值的内容解析的时候，我注意到有些值的内容只有简单的一个文件名，需要到Windows操作系统的环境变量`PATH`里内去寻找。在实现这个逻辑的时候，我发现了一件异常诡异的事情，就是在`"C:\\Windows\\System32"`这个目录下原版的`Autoruns`可以找到的可执行文件我在`C#`内使用API函数返回却找不到。我一开始以为是权限不够，但是用管理员运行后还是找不到。我在网上搜索后发现`visual studio`为我的项目自动勾选了`prefer 32 bit`选项，这样编译出来的可执行文件以32位的架构运行，访问`"C:\\Windows\\System32"`会被[重定向](https://docs.microsoft.com/zh-cn/windows/win32/winprog64/file-system-redirector?redirectedfrom=MSDN)到`"C:\\Windows\\SysWOW64"`，导致找不到文件，把`prefer 32 bit`选项取消掉就正常了。
+
+由于不含有启动项的注册表条目实在是太多，我就添加了一个隐藏空项的选项。
+
+
+### Services：系统服务
+
+###  Drivers：系统驱动程序
+
+###  Scheduled Tasks：计划任务
+
+
+
+
+## 附录
+
+### Logon注册表
 
 ```
 "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\Userinit",
@@ -108,11 +126,3 @@ SysinternalsSuite中Autostart工具列出了较为详细的自启动目录和包含自启动的注册表。
 "HKLM\SOFTWARE\Microsoft\Windows CE Services\AutoStartOnDisconnect",
 "HKLM\SOFTWARE\Wow6432Node\Microsoft\Windows CE Services\AutoStartOnDisconnect",
 ```
-
-    
-
-### Services：系统服务
-
-###  Drivers：系统驱动程序
-
-###  Scheduled Tasks：计划任务
