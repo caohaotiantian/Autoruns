@@ -16,68 +16,85 @@ namespace Autoruns
 
         private ImageList IconList;
         private const int pad = 5;
-        private Startups autoruns = new Startups();
+        private LogonStartups LogonAutoruns;
+        private ServicesStartups ServicesAutoruns;
 
         private void InitListView()
         {
-            listView1.View = View.Details;
-            listView1.AllowColumnReorder = false;
-            listView1.FullRowSelect = true;
-            listView1.HeaderStyle = ColumnHeaderStyle.Nonclickable;
-            
-            // In order to make the Reg Keys and Startup Folders stand out across 
-            // multipule columns, we need to draw it by ourselves instead of using
-            // the default draw funcions.
-            listView1.OwnerDraw = true;
-            listView1.DrawItem += 
-                new DrawListViewItemEventHandler(listView1_DrawItem);
-            listView1.DrawSubItem += 
-                new DrawListViewSubItemEventHandler(listView1_DrawSubItem);
-            listView1.DrawColumnHeader += 
-                new DrawListViewColumnHeaderEventHandler(listView1_DrawColumnHeader);
-
-            // Add five header columns
-            listView1.Columns.Add("Autorun Entry", 320, HorizontalAlignment.Left);
-            listView1.Columns.Add("Description", 160, HorizontalAlignment.Left);
-            listView1.Columns.Add("Publisher", 240, HorizontalAlignment.Left);
-            listView1.Columns.Add("Image Path", 480, HorizontalAlignment.Left);
-            listView1.Columns.Add("Timestamp", 140, HorizontalAlignment.Left);
-
-            // Create an image list and add an image.
+            // Create an image list and add an image.+
+            // SmallImageList must be set when using IndentCount.
             IconList = new ImageList();
             IconList.Images.Add(Autoruns.Properties.Resources.Icon_registry);
             IconList.Images.Add(Autoruns.Properties.Resources.Icon_folder);
+            
+            LogonAutoruns = new LogonStartups(listView1);
+            ServicesAutoruns = new ServicesStartups(listView2);
 
-            // SmallImageList must be set when using IndentCount.
+            InitPerListView(listView1);
             listView1.SmallImageList = IconList;
 
+            InitPerListView(listView2);
+            listView2.SmallImageList = IconList;
+
             toolStripStatusLabel1.Text = "Finished";
+            
+        }
+
+        private void InitPerListView(ListView lv)
+        {
+            lv.View = View.Details;
+            lv.AllowColumnReorder = false;
+            lv.FullRowSelect = true;
+            lv.HeaderStyle = ColumnHeaderStyle.Nonclickable;
+
+            // In order to make the Reg Keys and Startup Folders stand out across 
+            // multipule columns, we need to draw it by ourselves instead of using
+            // the default draw funcions.
+            lv.OwnerDraw = true;
+            lv.DrawItem +=
+                new DrawListViewItemEventHandler(listView_DrawItem);
+            lv.DrawSubItem +=
+                new DrawListViewSubItemEventHandler(listView_DrawSubItem);
+            lv.DrawColumnHeader +=
+                new DrawListViewColumnHeaderEventHandler(listView_DrawColumnHeader);
+
+            // Add five header columns
+            lv.Columns.Add("Autorun Entry", 320, HorizontalAlignment.Left);
+            lv.Columns.Add("Description", 160, HorizontalAlignment.Left);
+            lv.Columns.Add("Publisher", 240, HorizontalAlignment.Left);
+            lv.Columns.Add("Image Path", 480, HorizontalAlignment.Left);
+            lv.Columns.Add("Timestamp", 140, HorizontalAlignment.Left);
         }
 
         private void UpdateListView(bool hideEmpty = false)
         {
-            listView1.BeginUpdate();
-            listView1.Items.Clear();
-            foreach(StartupEntry e in autoruns.starupEntrys)
+            Startups[] su = { LogonAutoruns, ServicesAutoruns };
+            foreach (Startups s in su)
             {
-                if(e.IsMainEntry)
+                s.listView.BeginUpdate();
+                s.listView.Items.Clear();
+                foreach (StartupEntry e in s.starupEntrys)
                 {
-                    if (!hideEmpty || hideEmpty && !e.IsEmpty)
-                        AddContainerItem(e.EntryName, e.Time);
+                    if (e.IsMainEntry)
+                    {
+                        if (!hideEmpty || hideEmpty && !e.IsEmpty)
+                            AddContainerItem(s.listView, e.EntryName, e.Time);
+                    }
+                    else
+                    {
+                        AddAutorunItem(s.listView,
+                            e.EntryName,
+                            e.Desctiption,
+                            e.Publisher,
+                            e.ImagePath,
+                            e.Time);
+                    }
                 }
-                else
-                {
-                    AddAutorunItem(e.EntryName,
-                        e.Desctiption,
-                        e.Publisher,
-                        e.ImagePath,
-                        e.Time);
-                }
+                s.listView.EndUpdate();
             }
-            listView1.EndUpdate();
         }
 
-        private void AddContainerItem(string entry, DateTime time)
+        private void AddContainerItem(ListView lv, string entry, DateTime time)
         {
             ListViewItem item = new ListViewItem(entry);
 
@@ -91,10 +108,10 @@ namespace Autoruns
             item.IndentCount = 0;
 
             // Do actual add
-            listView1.Items.Add(item);
+            lv.Items.Add(item);
         }
 
-        private void AddAutorunItem(string entry, string desc, string publisher, string path, DateTime time)
+        private void AddAutorunItem(ListView lv, string entry, string desc, string publisher, string path, DateTime time)
         {
             ListViewItem item = new ListViewItem(entry, 1);
             
@@ -111,7 +128,7 @@ namespace Autoruns
             item.ImageKey = path;
 
             // Do actual add
-            listView1.Items.Add(item);
+            lv.Items.Add(item);
         }
 
         private void SetIconList(string path)
@@ -132,14 +149,8 @@ namespace Autoruns
             }
         }
 
-
-        private void hideMicrosoftEntrysToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
-        }
-
         // Draws the backgrounds for entire ListView items.
-        private void listView1_DrawItem(object sender, DrawListViewItemEventArgs e)
+        private void listView_DrawItem(object sender, DrawListViewItemEventArgs e)
         {
             if (e.Item.IndentCount != 0)
                 e.DrawDefault = true;
@@ -151,7 +162,7 @@ namespace Autoruns
         }
 
         // Draws subitem text and applies content-based formatting.
-        private void listView1_DrawSubItem(object sender, DrawListViewSubItemEventArgs e)
+        private void listView_DrawSubItem(object sender, DrawListViewSubItemEventArgs e)
         {   
             if (e.Item.IndentCount == 0)
             {
@@ -202,7 +213,7 @@ namespace Autoruns
         }
 
         // Draws column headers.
-        private void listView1_DrawColumnHeader(object sender, DrawListViewColumnHeaderEventArgs e)
+        private void listView_DrawColumnHeader(object sender, DrawListViewColumnHeaderEventArgs e)
         {
             e.DrawDefault = true;
         }
@@ -218,6 +229,23 @@ namespace Autoruns
             {
                 hideEmptyLocationToolStripMenuItem.Checked = true;
                 UpdateListView(true);
+            }
+        }
+
+        private void OnSelectChange(object sender, EventArgs e)
+        {
+            switch (tabControl1.SelectedIndex)
+            {
+                case 1:
+                    listView1.Visible = true;
+                    listView2.Visible = true;
+                    break;
+                case 2:
+                    //listView1.Visible = false;
+                    //listView2.Visible = true;
+                    break;
+                default:
+                    break;
             }
         }
     }
