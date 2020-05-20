@@ -35,6 +35,10 @@ namespace Autoruns
             string[] subKeyNames = subkey.GetSubKeyNames();
             foreach (string serviceName in subKeyNames)
             {
+                if (serviceName.Contains("1394"))
+                {
+                    string s = "Sdf";
+                }
                 if (TryParametersSubKey(serviceName) == false)
                     TryImagePath(serviceName);
             }
@@ -52,6 +56,7 @@ namespace Autoruns
             object o = subkey.GetValue("ImagePath");
             if (o == null) return false;
             string target = GetValueContentAsPath(o.ToString());
+            target = GetFilePathUnderSystemPath(target);
             if (target == string.Empty) return false;
 
             string disp = string.Empty;
