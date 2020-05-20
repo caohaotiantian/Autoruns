@@ -4,7 +4,9 @@ using System;
 using System.Collections;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using System.Windows.Forms;
 
 namespace Autoruns
@@ -82,20 +84,21 @@ namespace Autoruns
                 time));
         }
 
-        // Get the file path out of the outermost double quotation marks ""
+        // Get the normal file path out of the Registry Key Value Content
         protected string GetValueContentAsPath(string value)
         {
             string res = value;
+            // strip from double quote
             if (res != string.Empty && res[0] == '\"')
                 res = value.Substring(1, value.LastIndexOf('\"') - 1);
+            
+            // strip parameters at the end
             if (!res.EndsWith(".exe") && res.Contains(".exe"))
                 res = res.Substring(0, res.IndexOf(".exe") + 4);
-            if (res.Contains("?")) res = string.Empty;
-            if (res != string.Empty && res[0] == '%')
-            {
-                int secondPercent = res.IndexOf('%', 1);
+            
+            // strip strange characters in the beginning
+            if (res.StartsWith("\\??\\")) res = res.Substring(4);
 
-            }
             return res;
         }
 
@@ -112,5 +115,6 @@ namespace Autoruns
             }
             return "";
         }
+
     }
 }

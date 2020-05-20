@@ -58,7 +58,13 @@ SysinternalsSuite中Autostart工具列出了较为详细的自启动目录和包含自启动的注册表。
 
 ### Services：系统服务
 
+通过Services系统服务实现自启动的条目全部在注册表的`HKLM\System\CurrentControlSet\Services`这一键下。所以查看这一部分比较简单。
+
+在这个过程中我发现有些服务的`ImagePath`值是在`Parameters`这一子键下的，而有些服务的`ImagePath`值是在当前服务的键下的。所以这两种情况都需要考虑到。
+
 ###  Drivers：系统驱动程序
+
+
 
 ###  Scheduled Tasks：计划任务
 

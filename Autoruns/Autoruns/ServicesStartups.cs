@@ -10,7 +10,7 @@ namespace Autoruns
 {
     class ServicesStartups : Startups
     {
-        private const string RegEntry = "HKLM\\System\\CurrentControlSet\\Services";
+        private const string RegEntry = "System\\CurrentControlSet\\Services";
 
         public ServicesStartups(ListView _listView)
         {
@@ -21,56 +21,115 @@ namespace Autoruns
         private void LoadRegEntry()
         {
             RegistryKey key = Registry.LocalMachine;
-            const string regEntryName = "System\\CurrentControlSet\\Services";
-
+            
             StartupEntry localStartupEntry = new StartupEntry(true,
                 RegEntry,
                 string.Empty,
                 string.Empty,
                 string.Empty,
                 DateTime.Now);
+            localStartupEntry.IsEmpty = false;
             starupEntrys.Add(localStartupEntry);
 
-            RegistryKey subkey = key.OpenSubKey(regEntryName, true);
+            RegistryKey subkey = key.OpenSubKey(RegEntry, true);
             string[] subKeyNames = subkey.GetSubKeyNames();
-            foreach (string appEntry in subKeyNames)
+            foreach (string serviceName in subKeyNames)
             {
-                if (appEntry == "CertPropSvc")
-                {
-                    string sd = "sdf";
-                }
-                RegistryKey appSubKey = key.OpenSubKey(regEntryName + "\\" + appEntry);
-                
-                string kname = regEntryName + "\\" + appEntry + "\\parameters";
-                RegistryKey k = key.OpenSubKey(kname);
-                if (k == null || k.GetValue("serviceDLL") == null)
-                {
-                    if (appSubKey.GetValue("ImagePath") != null)
-                    {
-                        string target1 = GetValueContentAsPath(appSubKey.GetValue("ImagePath").ToString());
-                        if (target1 == "") continue;
-                        if (GetFileDescription(target1) == "") continue;
-                        AddStartupEntry(false,
-                            appEntry,
-                            GetFileDescription(target1),
-                            GetFilePublisher(target1),
-                            target1,
-                            GetFileTime(target1));
-                        continue;
-                    }
-                    continue;
-                }
-                string value = k.GetValue("serviceDLL").ToString();
-                string target = GetValueContentAsPath(value);
-                if (GetFileDescription(target) == "") continue;
-                AddStartupEntry(false,
-                    appEntry,
-                    GetFileDescription(target),
-                    GetFilePublisher(target),
-                    target,
-                    GetFileTime(target));
-                localStartupEntry.IsEmpty = false;
+                if (TryParametersSubKey(serviceName) == false)
+                    TryImagePath(serviceName);
             }
+        }
+
+        private bool TryImagePath(string serviceName)
+        {
+            // Open subkey `HKLM\\System\\CurrentControlSet\\Services\\xxx`
+            RegistryKey key = Registry.LocalMachine;
+            string serviceSubKeyName = RegEntry + @"\" + serviceName;
+            RegistryKey subkey = key.OpenSubKey(serviceSubKeyName, false);
+            if (subkey == null) return false;
+
+            // Get the content of keyvalue ImagePath as target
+            object o = subkey.GetValue("ImagePath");
+            if (o == null) return false;
+            string target = GetValueContentAsPath(o.ToString());
+            if (target == string.Empty) return false;
+
+            string disp = string.Empty;
+            string desc = string.Empty;
+            o = subkey.GetValue("DisplayName");
+            if (o != null)
+            {
+                disp = o.ToString();
+                if (disp.StartsWith("@"))
+                {
+                    disp = MuiStrng.LoadMuiStringValue(subkey, "DisplayName");
+                }
+            }
+            o = subkey.GetValue("Description");
+            if (o != null)
+            {
+                desc = o.ToString();
+                if (desc.StartsWith("@"))
+                {
+                    desc = MuiStrng.LoadMuiStringValue(subkey, "Description");
+                }
+            }
+
+            AddStartupEntry(false,
+                            serviceName,
+                            disp + ": " + desc + GetFileDescription(target),
+                            GetFilePublisher(target),
+                            target,
+                            GetFileTime(target));
+            return true;
+        }
+
+        private bool TryParametersSubKey(string serviceName)
+        {
+            // Open subkey `HKLM\\System\\CurrentControlSet\\Services\\xxx\\Parameters`
+            RegistryKey key = Registry.LocalMachine;
+            string serviceSubKeyName = RegEntry + @"\" + serviceName + @"\Parameters";
+            RegistryKey subkey = key.OpenSubKey(serviceSubKeyName, false);
+            if (subkey == null) return false;
+
+            // Get the content of keyvalue serviceDLL as target
+            object o = subkey.GetValue("serviceDLL");
+            if (o == null) return false;
+            string target = GetValueContentAsPath(o.ToString());
+            if (target == string.Empty) return false;
+
+            string disp = string.Empty;
+            string desc = string.Empty;
+            subkey = key.OpenSubKey(RegEntry + @"\" + serviceName, false);
+            o = subkey.GetValue("DisplayName");
+            if (o != null)
+            {
+                disp = o.ToString();
+                if (disp.StartsWith("@"))
+                {
+                    disp = MuiStrng.LoadMuiStringValue(subkey, "DisplayName");
+                }
+            }
+            o = subkey.GetValue("Description");
+            if (o != null)
+            {
+                desc = o.ToString();
+                if (desc.StartsWith("@"))
+                {
+                    desc = MuiStrng.LoadMuiStringValue(subkey, "Description");
+                }
+            }
+            if (serviceName == "AeLookupSvc")
+            {
+                string s = "sdf";
+            }
+            AddStartupEntry(false,
+                            serviceName,
+                            disp + ": " + desc + GetFileDescription(target),
+                            GetFilePublisher(target),
+                            target,
+                            GetFileTime(target));
+            return true;
         }
     }
 }
