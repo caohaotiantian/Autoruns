@@ -12,5 +12,5 @@ A simple Windows tool to check out softwares that auto-starts at boot time.
 [x] A simple native windows UI, just imitate the Autoruns  
 [x] Logon Scan (Reg table, startup folders)  
 [x] Services Scan  
-[] Drivers Scan  
-[] Scheduled Tasks Scan  
+[x] Drivers Scan  
+[x] Scheduled Tasks Scan  

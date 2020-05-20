@@ -64,7 +64,7 @@
             this.toolStripStatusLabel1});
             this.statusStrip1.Location = new System.Drawing.Point(0, 749);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(1522, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(1422, 22);
             this.statusStrip1.TabIndex = 0;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -84,7 +84,7 @@
             this.helpToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(1522, 25);
+            this.menuStrip1.Size = new System.Drawing.Size(1422, 25);
             this.menuStrip1.TabIndex = 1;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -148,7 +148,7 @@
             this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.panel1.Location = new System.Drawing.Point(0, 649);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(1522, 100);
+            this.panel1.Size = new System.Drawing.Size(1422, 100);
             this.panel1.TabIndex = 2;
             // 
             // listView1
@@ -171,9 +171,8 @@
             this.tabControl1.Location = new System.Drawing.Point(0, 25);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(1522, 624);
+            this.tabControl1.Size = new System.Drawing.Size(1422, 624);
             this.tabControl1.TabIndex = 4;
-            this.tabControl1.SelectedIndexChanged += new System.EventHandler(this.OnSelectChange);
             // 
             // tabPage1
             // 
@@ -213,7 +212,7 @@
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(1514, 598);
+            this.tabPage3.Size = new System.Drawing.Size(1414, 598);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Drivers";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -235,7 +234,7 @@
             this.listView3.HideSelection = false;
             this.listView3.Location = new System.Drawing.Point(3, 3);
             this.listView3.Name = "listView3";
-            this.listView3.Size = new System.Drawing.Size(1508, 592);
+            this.listView3.Size = new System.Drawing.Size(1408, 592);
             this.listView3.TabIndex = 0;
             this.listView3.UseCompatibleStateImageBehavior = false;
             // 
@@ -253,7 +252,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1522, 771);
+            this.ClientSize = new System.Drawing.Size(1422, 771);
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.statusStrip1);

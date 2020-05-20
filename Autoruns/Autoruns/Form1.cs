@@ -19,6 +19,7 @@ namespace Autoruns
         private LogonStartups LogonAutoruns;
         private ServicesStartups ServicesAutoruns;
         private ServicesStartups DriversAutoruns;
+        private TaskScheduleStartups TaskScheduleAutoruns;
 
         private void InitListView()
         {
@@ -31,6 +32,7 @@ namespace Autoruns
             LogonAutoruns = new LogonStartups(listView1);
             ServicesAutoruns = new ServicesStartups(listView2, false);
             DriversAutoruns  = new ServicesStartups(listView3, true);
+            TaskScheduleAutoruns = new TaskScheduleStartups(listView4);
 
             InitPerListView(listView1);
             listView1.SmallImageList = IconList;
@@ -40,6 +42,9 @@ namespace Autoruns
 
             InitPerListView(listView3);
             listView3.SmallImageList = IconList;
+
+            InitPerListView(listView4);
+            listView4.SmallImageList = IconList;
 
             toolStripStatusLabel1.Text = "Finished";
             
@@ -73,7 +78,7 @@ namespace Autoruns
 
         private void UpdateListView(bool hideEmpty = false)
         {
-            Startups[] su = { LogonAutoruns, ServicesAutoruns, DriversAutoruns };
+            Startups[] su = { LogonAutoruns, ServicesAutoruns, DriversAutoruns, TaskScheduleAutoruns };
             foreach (Startups s in su)
             {
                 s.listView.BeginUpdate();
@@ -235,13 +240,6 @@ namespace Autoruns
                 hideEmptyLocationToolStripMenuItem.Checked = true;
                 UpdateListView(true);
             }
-        }
-
-        private void OnSelectChange(object sender, EventArgs e)
-        {
-            listView1.Visible = true;
-            listView2.Visible = true;
-            listView3.Visible = true;
         }
     }
 }

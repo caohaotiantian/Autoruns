@@ -55,11 +55,10 @@ namespace Autoruns
             }
             catch (Exception e)
             {
-                string err = e.ToString();
+
             }
 
-
-            return string.Empty;
+            return "(Signature not embedded)";
         }
 
         protected DateTime GetFileTime(string path)
@@ -104,6 +103,15 @@ namespace Autoruns
             {
                 string SystemRoot = Environment.GetEnvironmentVariable("SystemRoot");
                 res = SystemRoot + res.Substring(res.IndexOf(@"\"));
+            }
+
+            // deal with environment variables
+            if (res.StartsWith(@"%"))
+            {
+                int index = res.IndexOf(@"%", 1);
+                string envVar = res.Substring(1, index - 1);
+                string envVarValue = Environment.GetEnvironmentVariable(envVar);
+                res = envVarValue + res.Substring(index + 1);
             }
 
             return res;

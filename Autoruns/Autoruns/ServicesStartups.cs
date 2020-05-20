@@ -21,7 +21,7 @@ namespace Autoruns
         private void AddHeaderKeyEntry()
         {
             StartupEntry localStartupEntry = new StartupEntry(true,
-                RegEntry,
+                @"HKLM\\" + RegEntry,
                 string.Empty,
                 string.Empty,
                 string.Empty,
@@ -88,8 +88,9 @@ namespace Autoruns
             string disp = o == null ? "" : o.ToString();
             if (disp.StartsWith("@"))
                 disp = MuiStrng.LoadMuiStringValue(subkey, "DisplayName");
-            if (disp != string.Empty) disp += ": ";
-            
+            if (disp == string.Empty) disp = serviceName;
+            disp += ": ";
+
             o = subkey.GetValue("Description");
             string desc = o == null ? "" : o.ToString();
             if (desc.StartsWith("@"))
@@ -101,7 +102,7 @@ namespace Autoruns
                 AddStartupEntry(false,
                                 serviceName,
                                 disp + desc,
-                                GetFilePublisher(targetFilePath),
+                                GetFilePublisher(targetFilePath) == "" ? "(Signature not embedded)" : GetFilePublisher(targetFilePath),
                                 targetFilePath,
                                 GetFileTime(targetFilePath));
         }

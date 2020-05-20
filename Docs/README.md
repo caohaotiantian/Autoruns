@@ -64,7 +64,7 @@ SysinternalsSuite中Autostart工具列出了较为详细的自启动目录和包含自启动的注册表。
 
 ###  Drivers：系统驱动程序
 
-
+和Services系统服务在同一个键下
 
 ###  Scheduled Tasks：计划任务
 
