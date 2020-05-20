@@ -1,9 +1,5 @@
 ﻿using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Autoruns
@@ -15,13 +11,12 @@ namespace Autoruns
         public ServicesStartups(ListView _listView)
         {
             listView = _listView;
-            LoadRegEntry();
+            AddHeaderKeyEntry();
+            LoadRegistryEntry();
         }
 
-        private void LoadRegEntry()
+        private void AddHeaderKeyEntry()
         {
-            RegistryKey key = Registry.LocalMachine;
-            
             StartupEntry localStartupEntry = new StartupEntry(true,
                 RegEntry,
                 string.Empty,
@@ -30,15 +25,15 @@ namespace Autoruns
                 DateTime.Now);
             localStartupEntry.IsEmpty = false;
             starupEntrys.Add(localStartupEntry);
+        }
 
+        private void LoadRegistryEntry()
+        {
+            RegistryKey key = Registry.LocalMachine;
             RegistryKey subkey = key.OpenSubKey(RegEntry, true);
-            string[] subKeyNames = subkey.GetSubKeyNames();
-            foreach (string serviceName in subKeyNames)
+            
+            foreach (string serviceName in subkey.GetSubKeyNames())
             {
-                if (serviceName.Contains("1394"))
-                {
-                    string s = "Sdf";
-                }
                 if (TryParametersSubKey(serviceName) == false)
                     TryImagePath(serviceName);
             }
@@ -59,33 +54,7 @@ namespace Autoruns
             target = GetFilePathUnderSystemPath(target);
             if (target == string.Empty) return false;
 
-            string disp = string.Empty;
-            string desc = string.Empty;
-            o = subkey.GetValue("DisplayName");
-            if (o != null)
-            {
-                disp = o.ToString();
-                if (disp.StartsWith("@"))
-                {
-                    disp = MuiStrng.LoadMuiStringValue(subkey, "DisplayName");
-                }
-            }
-            o = subkey.GetValue("Description");
-            if (o != null)
-            {
-                desc = o.ToString();
-                if (desc.StartsWith("@"))
-                {
-                    desc = MuiStrng.LoadMuiStringValue(subkey, "Description");
-                }
-            }
-
-            AddStartupEntry(false,
-                            serviceName,
-                            disp + ": " + desc + GetFileDescription(target),
-                            GetFilePublisher(target),
-                            target,
-                            GetFileTime(target));
+            AddValidStartupEntry(target, serviceName);
             return true;
         }
 
@@ -102,39 +71,44 @@ namespace Autoruns
             if (o == null) return false;
             string target = GetValueContentAsPath(o.ToString());
             if (target == string.Empty) return false;
+            
+            AddValidStartupEntry(target, serviceName);
+            return true;
+        }
 
+
+        private void AddValidStartupEntry(string targetFilePath, string serviceName)
+        {
+            string keyName = RegEntry + @"\" + serviceName;
+            RegistryKey subkey = Registry.LocalMachine.OpenSubKey(keyName, false);
+            if (targetFilePath.Contains("appm"))
+            {
+                string sd = "123123";
+            }
             string disp = string.Empty;
             string desc = string.Empty;
-            subkey = key.OpenSubKey(RegEntry + @"\" + serviceName, false);
-            o = subkey.GetValue("DisplayName");
+            object o = subkey.GetValue("DisplayName");
             if (o != null)
             {
                 disp = o.ToString();
                 if (disp.StartsWith("@"))
-                {
                     disp = MuiStrng.LoadMuiStringValue(subkey, "DisplayName");
-                }
             }
+            if (disp != null) disp += ": ";
             o = subkey.GetValue("Description");
             if (o != null)
             {
                 desc = o.ToString();
                 if (desc.StartsWith("@"))
-                {
                     desc = MuiStrng.LoadMuiStringValue(subkey, "Description");
-                }
             }
-            if (serviceName == "AeLookupSvc")
-            {
-                string s = "sdf";
-            }
-            AddStartupEntry(false,
-                            serviceName,
-                            disp + ": " + desc + GetFileDescription(target),
-                            GetFilePublisher(target),
-                            target,
-                            GetFileTime(target));
-            return true;
+            if (!targetFilePath.EndsWith("sys"))
+                AddStartupEntry(false,
+                                serviceName,
+                                disp + desc,
+                                GetFilePublisher(targetFilePath),
+                                targetFilePath,
+                                GetFileTime(targetFilePath));
         }
     }
 }

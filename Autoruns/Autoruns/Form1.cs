@@ -59,8 +59,8 @@ namespace Autoruns
                 new DrawListViewColumnHeaderEventHandler(listView_DrawColumnHeader);
 
             // Add five header columns
-            lv.Columns.Add("Autorun Entry", 320, HorizontalAlignment.Left);
-            lv.Columns.Add("Description", 160, HorizontalAlignment.Left);
+            lv.Columns.Add("Autorun Entry", 220, HorizontalAlignment.Left);
+            lv.Columns.Add("Description", 260, HorizontalAlignment.Left);
             lv.Columns.Add("Publisher", 240, HorizontalAlignment.Left);
             lv.Columns.Add("Image Path", 480, HorizontalAlignment.Left);
             lv.Columns.Add("Timestamp", 140, HorizontalAlignment.Left);
