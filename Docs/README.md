@@ -60,16 +60,37 @@ SysinternalsSuite中Autostart工具列出了较为详细的自启动目录和包含自启动的注册表。
 
 通过Services系统服务实现自启动的条目全部在注册表的`HKLM\System\CurrentControlSet\Services`这一键下。所以查看这一部分比较简单。
 
-在这个过程中我发现有些服务的`ImagePath`值是在`Parameters`这一子键下的，而有些服务的`ImagePath`值是在当前服务的键下的。所以这两种情况都需要考虑到。
+我遇到的第一个问题这两种关键数据的获取，只有获取了注册表的键值所指向的目标程序我才能够做进一步的分析。在这个过程中我发现有些服务指向的`DLL`文件是`Parameters`这一子键下的`serviceDLL`值所指定的，而有些服务是当前服务的键下的`ImagePath`值来指定的的。所以要分着两种情况来考虑。
+
+我设置的优先级是`serviceDLL`的优先级要高，并且自己新建了一个键发现最少需要`ImagePath`、`Type`和`Start`这三个值的存在（不论值是多少）就能够在`Autoruns`的`Drivers`这一栏显示出来。系统服务大多数的是`Parameters`这一子键下的`serviceDLL`值所指定的，但是仍旧有小部分是用`ImagePath`指定。
+
+我遇到的第二个问题是大多数的`ImagePath`中使用了环境变量`SystemRoot`，我需要解析值的内容中可能出现的环境变量。
+
+我遇到的第三个问题是`Autoruns`中每一项的描述是依据注册表中的另外两个键值来指定的，分别是当前服务的键下`Description`和`DisplayName`这两个键来指定的，但是这两个键使用的都是[字符串重定向](https://stackoverflow.com/questions/22273956/how-to-get-redirected-string-from-the-registry)，是微软的`Multilingual User Interface`支持的本地化，典型的例子是：
+
+```
+@%SystemRoot%\system32\shell32.dll,-21791
+```
+
+我按照`StackOverflow`上的代码把`advapi.dll`中的函数分装到了`c#`内，这个函数能够自动地解析环境变量，并找到指定的文件，并从中提取中这个服务dll的详细描述。
+
+我遇到的第四个问题是大多数的服务dll不是把证书内嵌在可执行文件中的，所以之前从文件证书中提取发布者的方法不能继续用了。询问老师后我得知这种证书不内嵌在文件中但是人就是有效的原因是使用了`Catalog Signature`的技术，在系统目录`C:\Windows\System32\catroot\{F750E6C3-38EE-11D1-85E5-00C04FC295EE}`下有很多的`.cat`文件，这些文件中包含了已经被认证的程序的sha1值，相当于用一个文件担保别的其他文件。
+
+我在搜寻了一圈后没有发现`C#`中可用的`API`来实现这个功能，考虑到使用高级的`C#`调用`C++`函数需要花费更多的时间，所以这一部分我就没有深究下去了。
 
 ###  Drivers：系统驱动程序
 
-和Services系统服务在同一个键下
+系统驱动程序和Services系统服务在同一个键下，所以我没有多写很多的代码，只是简单的按照可执行文件名是否是以`.sys`结尾来区分是`系统服务自启动`还是`系统驱动程序自启动`。
 
 ###  Scheduled Tasks：计划任务
 
+计划任务是`Windows`系统自带的一个软件，允许用户自己定义自动化的任务。常见的计划任务就是开机自启动。
 
+我在`C#`中是引入了一个`.COM`的`taskScheduler`引用，使用这个API来实现相应的功能。操作起来和读取注册表类似，只不过我解析可执行文件路径的时候需要解析一下XML格式的数据。
 
+## 可选的功能实现
+
+### Internet Explorer：IE 浏览器的 BHO 对象
 
 ## 附录
 

@@ -18,6 +18,9 @@ namespace Autoruns
             LoadRegistryEntry();
         }
 
+        /// <summary>
+        ///     the first entry of `starupEntrys` is the Registry Key ( for display )
+        /// </summary>
         private void AddHeaderKeyEntry()
         {
             StartupEntry localStartupEntry = new StartupEntry(true,
@@ -30,6 +33,10 @@ namespace Autoruns
             starupEntrys.Add(localStartupEntry);
         }
 
+        /// <summary>
+        ///     Loop through Key `RegEntry` and try two parse way to interprete
+        ///     the target file path
+        /// </summary>
         private void LoadRegistryEntry()
         {
             RegistryKey key = Registry.LocalMachine;
@@ -42,6 +49,11 @@ namespace Autoruns
             }
         }
 
+        /// <summary>
+        ///     `ImagePath` key
+        /// </summary>
+        /// <param name="serviceName">the service key name</param>
+        /// <returns>whether parse succeed</returns>
         private bool TryImagePath(string serviceName)
         {
             // Open subkey `HKLM\\System\\CurrentControlSet\\Services\\xxx`
@@ -61,6 +73,11 @@ namespace Autoruns
             return true;
         }
 
+        /// <summary>
+        ///     `serviceDLL` Value under `Parameters` Key
+        /// </summary>
+        /// <param name="serviceName">the service key name</param>
+        /// <returns>whether parse succeed</returns>
         private bool TryParametersSubKey(string serviceName)
         {
             // Open subkey `HKLM\\System\\CurrentControlSet\\Services\\xxx\\Parameters`
