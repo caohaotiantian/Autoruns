@@ -18,6 +18,7 @@ namespace Autoruns
         private const int pad = 5;
         private LogonStartups LogonAutoruns;
         private ServicesStartups ServicesAutoruns;
+        private ServicesStartups DriversAutoruns;
 
         private void InitListView()
         {
@@ -28,13 +29,17 @@ namespace Autoruns
             IconList.Images.Add(Autoruns.Properties.Resources.Icon_folder);
             
             LogonAutoruns = new LogonStartups(listView1);
-            ServicesAutoruns = new ServicesStartups(listView2);
+            ServicesAutoruns = new ServicesStartups(listView2, false);
+            DriversAutoruns  = new ServicesStartups(listView3, true);
 
             InitPerListView(listView1);
             listView1.SmallImageList = IconList;
 
             InitPerListView(listView2);
             listView2.SmallImageList = IconList;
+
+            InitPerListView(listView3);
+            listView3.SmallImageList = IconList;
 
             toolStripStatusLabel1.Text = "Finished";
             
@@ -68,7 +73,7 @@ namespace Autoruns
 
         private void UpdateListView(bool hideEmpty = false)
         {
-            Startups[] su = { LogonAutoruns, ServicesAutoruns };
+            Startups[] su = { LogonAutoruns, ServicesAutoruns, DriversAutoruns };
             foreach (Startups s in su)
             {
                 s.listView.BeginUpdate();
@@ -234,19 +239,9 @@ namespace Autoruns
 
         private void OnSelectChange(object sender, EventArgs e)
         {
-            switch (tabControl1.SelectedIndex)
-            {
-                case 1:
-                    listView1.Visible = true;
-                    listView2.Visible = true;
-                    break;
-                case 2:
-                    //listView1.Visible = false;
-                    //listView2.Visible = true;
-                    break;
-                default:
-                    break;
-            }
+            listView1.Visible = true;
+            listView2.Visible = true;
+            listView3.Visible = true;
         }
     }
 }

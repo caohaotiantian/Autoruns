@@ -8,9 +8,12 @@ namespace Autoruns
     {
         private const string RegEntry = "System\\CurrentControlSet\\Services";
 
-        public ServicesStartups(ListView _listView)
+        private bool isDrivers;
+
+        public ServicesStartups(ListView _listView, bool _isDrivers)
         {
             listView = _listView;
+            isDrivers = _isDrivers;
             AddHeaderKeyEntry();
             LoadRegistryEntry();
         }
@@ -76,33 +79,25 @@ namespace Autoruns
             return true;
         }
 
-
         private void AddValidStartupEntry(string targetFilePath, string serviceName)
         {
             string keyName = RegEntry + @"\" + serviceName;
             RegistryKey subkey = Registry.LocalMachine.OpenSubKey(keyName, false);
-            if (targetFilePath.Contains("appm"))
-            {
-                string sd = "123123";
-            }
-            string disp = string.Empty;
-            string desc = string.Empty;
+            
             object o = subkey.GetValue("DisplayName");
-            if (o != null)
-            {
-                disp = o.ToString();
-                if (disp.StartsWith("@"))
-                    disp = MuiStrng.LoadMuiStringValue(subkey, "DisplayName");
-            }
-            if (disp != null) disp += ": ";
+            string disp = o == null ? "" : o.ToString();
+            if (disp.StartsWith("@"))
+                disp = MuiStrng.LoadMuiStringValue(subkey, "DisplayName");
+            if (disp != string.Empty) disp += ": ";
+            
             o = subkey.GetValue("Description");
-            if (o != null)
-            {
-                desc = o.ToString();
-                if (desc.StartsWith("@"))
-                    desc = MuiStrng.LoadMuiStringValue(subkey, "Description");
-            }
-            if (!targetFilePath.EndsWith("sys"))
+            string desc = o == null ? "" : o.ToString();
+            if (desc.StartsWith("@"))
+                desc = MuiStrng.LoadMuiStringValue(subkey, "Description");
+            if (desc == null || desc == string.Empty)
+                desc = GetFileDescription(targetFilePath);
+            if ((!isDrivers && !targetFilePath.EndsWith("sys")) ||
+                ( isDrivers &&  targetFilePath.EndsWith("sys")))
                 AddStartupEntry(false,
                                 serviceName,
                                 disp + desc,
